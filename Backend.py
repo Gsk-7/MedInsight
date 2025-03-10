@@ -5,17 +5,17 @@ import os
 import logging
 import google.generativeai as genai
 
-# ✅ Configure API Key
+# Configure API Key
 genai.configure(api_key="AIzaSyDGvR_OAz0iGn69q-DYZafJFNeASEGVsS4")
 
-# ✅ Initialize the model
-MODEL_ID = "gemini-1.5-pro"  # Use a valid model like gemini-1.5-pro
+# Initialize the model
+MODEL_ID = "gemini-2.0-flash-exp"
 chat_instance = genai.GenerativeModel(MODEL_ID)
 
-# ✅ Start a chat session to maintain history
+# Start a chat session to maintain history
 chat_session = chat_instance.start_chat(history=[])
 
-# ✅ Function to chat with the model and maintain conversation history
+# Function to chat with the model and maintain conversation history
 def chat_with_model(prompt):
     response = chat_session.send_message(prompt)  # Uses chat history
     return response.text  # ✅ Ensure it returns text, not an object
@@ -30,7 +30,7 @@ CORS(app)
 # Logging setup
 logging.basicConfig(level=logging.DEBUG)
 
-# ✅ Serve frontend
+# Serve frontend
 @app.route("/")
 def serve_frontend():
     return send_from_directory("dist", "index.html")
@@ -39,7 +39,7 @@ def serve_frontend():
 def serve_static_files(path):
     return send_from_directory("dist", path)
 
-# ✅ Chatbot API with session continuity
+# Chatbot API with session continuity
 @app.route("/api/chat", methods=["POST"])
 def chat_api():
     user_message = request.json.get("message")
@@ -53,6 +53,6 @@ def chat_api():
         logging.error(f"Error: {e}")
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
-# ✅ Run Flask
+# Run Flask
 if __name__ == "__main__":
     app.run(debug=os.getenv("FLASK_DEBUG", "false").strip().lower() in ["1", "true"])
