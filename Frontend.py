@@ -237,17 +237,62 @@ function App() {
     }
   }, [conversation, isTyping]);
 
+    // Calculate unread notifications count dynamically
+    const unreadNotificationsCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
+
+    const FilesUploadArea = () => {
+      const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    
+      const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+          setSelectedFile(file);
+        }
+      };
+    
+      return (
+        <div className="mt-6">
+          <div className={`border-2 border-dashed ${
+            isDarkMode ? 'border-gray-600' : 'border-gray-300'
+          } rounded-lg p-6 text-center`}>
+            <input
+              type="file"
+              id="fileUpload"
+              className="hidden"
+              accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png,.dcm"
+              onChange={handleFileChange}
+            />
+  
+            <label
+              htmlFor="fileUpload"
+              className="cursor-pointer inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+            >
+              Choose File
+            </label>
+            {selectedFile && (
+              <p className="mt-3 text-sm text-green-400">
+                Selected File: {selectedFile.name}
+              </p>
+            )}
+            <p className={`mt-2 text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Supported formats: {fileType === 'documents' ? 'PDF, XLSX, DOCX' : 'JPG, PNG, DICOM'}
+            </p>
+          </div>
+        </div>
+      );
+    };  
+
   // Camera functions
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        setIsCapturing(true);
       }
-    } catch (err) {
-      console.error("Error accessing camera:", err);
-      alert("Unable to access camera. Please make sure you have granted camera permissions.");
+      setCameraOpen(true);
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      alert('Unable to access camera. Please allow permissions.');
     }
   };
 
@@ -266,16 +311,13 @@ function App() {
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
-      
       if (context) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
         const imageDataUrl = canvas.toDataURL('image/png');
         setCapturedImage(imageDataUrl);
-        stopCamera();
-        setCameraOpen(false);  // Close the camera modal after capturing
+        setCameraOpen(false);
       }
     }
   };
@@ -288,63 +330,6 @@ function App() {
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle('dark');
-  };
-
-  // Calculate unread notifications count dynamically
-  const unreadNotificationsCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
-
-  const FilesUploadArea = () => {
-    return (
-      <div className="mt-6">
-        <div className="flex space-x-4 mb-4">
-          <button
-            onClick={() => setFileType('documents')}
-            className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
-              fileType === 'documents'
-                ? isDarkMode ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-800'
-                : isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
-            }`}
-          >
-            <FileText className="h-5 w-5" />
-            <span>Documents</span>
-          </button>
-          <button
-            onClick={() => setFileType('images')}
-            className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
-              fileType === 'images'
-                ? isDarkMode ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-800'
-                : isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
-            }`}
-          >
-            <FileImage className="h-5 w-5" />
-            <span>Images</span>
-          </button>
-        </div>
-        
-        <div className={`border-2 border-dashed ${
-          isDarkMode ? 'border-gray-600' : 'border-gray-300'
-        } rounded-lg p-6`}>
-          {fileType === 'documents' ? (
-            <FileText className={`mx-auto h-12 w-12 ${
-              isDarkMode ? 'text-gray-500' : 'text-gray-400'
-            }`} />
-          ) : (
-            <FileImage className={`mx-auto h-12 w-12 ${
-              isDarkMode ? 'text-gray-500' : 'text-gray-400'
-            }`} />
-          )}
-          <p className={`mt-4 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            Drag and drop your {fileType === 'documents' ? 'medical documents' : 'medical images'} here, or{' '}
-            <button className="text-indigo-500 hover:text-indigo-400 font-medium">
-              browse files
-            </button>
-          </p>
-          <p className={`mt-2 text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Supported formats: {fileType === 'documents' ? 'PDF, XLSX, XLS, DOC, DOCX' : 'JPG, PNG, DICOM'}
-          </p>
-        </div>
-      </div>
-    );
   };
 
   const CameraUploadArea = () => {
