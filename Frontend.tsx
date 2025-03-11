@@ -237,62 +237,17 @@ function App() {
     }
   }, [conversation, isTyping]);
 
-    // Calculate unread notifications count dynamically
-    const unreadNotificationsCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
-
-    const FilesUploadArea = () => {
-      const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    
-      const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-          setSelectedFile(file);
-        }
-      };
-    
-      return (
-        <div className="mt-6">
-          <div className={`border-2 border-dashed ${
-            isDarkMode ? 'border-gray-600' : 'border-gray-300'
-          } rounded-lg p-6 text-center`}>
-            <input
-              type="file"
-              id="fileUpload"
-              className="hidden"
-              accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png,.dcm"
-              onChange={handleFileChange}
-            />
-  
-            <label
-              htmlFor="fileUpload"
-              className="cursor-pointer inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-            >
-              Choose File
-            </label>
-            {selectedFile && (
-              <p className="mt-3 text-sm text-green-400">
-                Selected File: {selectedFile.name}
-              </p>
-            )}
-            <p className={`mt-2 text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Supported formats: {fileType === 'documents' ? 'PDF, XLSX, DOCX' : 'JPG, PNG, DICOM'}
-            </p>
-          </div>
-        </div>
-      );
-    };  
-
   // Camera functions
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        setIsCapturing(true);
       }
-      setCameraOpen(true);
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      alert('Unable to access camera. Please allow permissions.');
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      alert("Unable to access camera. Please make sure you have granted camera permissions.");
     }
   };
 
@@ -311,13 +266,16 @@ function App() {
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
+      
       if (context) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
         const imageDataUrl = canvas.toDataURL('image/png');
         setCapturedImage(imageDataUrl);
-        setCameraOpen(false);
+        stopCamera();
+        setCameraOpen(false);  // Close the camera modal after capturing
       }
     }
   };
@@ -331,6 +289,84 @@ function App() {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle('dark');
   };
+
+  // Calculate unread notifications count dynamically
+  const unreadNotificationsCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
+
+  const FilesUploadArea = () => {
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [uploaded, setUploaded] = useState(false);
+  
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (event.target.files && event.target.files.length > 0) {
+        const file = event.target.files[0];
+        setSelectedFile(file);
+        uploadFile(file);
+      }
+    };
+  
+    const uploadFile = async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+  
+      try {
+        const response = await fetch("http://127.0.0.1:5000/upload", {
+          method: "POST",
+          body: formData,
+        });
+  
+        if (response.ok) {
+          setUploaded(true);
+        } else {
+          console.error("Upload failed");
+        }
+      } catch (error) {
+        console.error("Error uploading file:", error);
+      }
+    };
+  
+    const handleAnalyzeClick = () => {
+      window.location.href = "/analyze"; // Redirect to analysis page
+    };
+  
+    return (
+      <div className="mt-6">
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+          {!uploaded ? (
+            <>
+              <input
+                type="file"
+                id="fileUpload"
+                className="hidden"
+                accept=".pdf,.xlsx,.docx"
+                onChange={handleFileChange}
+              />
+              <label
+                htmlFor="fileUpload"
+                className="cursor-pointer inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+              >
+                Choose File
+              </label>
+              <p className="text-sm mt-2 text-gray-500">
+                Supported formats: PDF, XLSX, DOCX
+              </p>
+            </>
+          ) : (
+            <div className="text-center">
+              <p className="text-lg font-medium">File uploaded successfully!</p>
+              <button
+                onClick={handleAnalyzeClick}
+                className="mt-4 px-6 py-2 bg-green-600 text-white rounded-md"
+              >
+                Analyze
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+  
 
   const CameraUploadArea = () => {
     return (
