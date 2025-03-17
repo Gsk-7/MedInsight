@@ -9,6 +9,10 @@ import requests
 import PyPDF2
 import pandas as pd
 import docx
+import pytesseract
+import cv2
+from PIL import Image
+
 
 # Load environment variables
 load_dotenv()
@@ -19,6 +23,9 @@ CORS(app)
 
 # Logging setup
 logging.basicConfig(level=logging.DEBUG)
+
+# Set the path to tesseract.exe
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Configure API Key
 genai.configure(api_key="AIzaSyDGvR_OAz0iGn69q-DYZafJFNeASEGVsS4")
@@ -53,29 +60,40 @@ def chat_with_model(prompt):
 # Function to extract text from files
 def extract_text(file_path):
     extracted_text = ""
+
     if file_path.endswith(".pdf"):
         with open(file_path, "rb") as f:
             pdf_reader = PyPDF2.PdfReader(f)
             for page in pdf_reader.pages:
                 extracted_text += page.extract_text() or ""
+
     elif file_path.endswith(".docx"):
         doc = docx.Document(file_path)
         extracted_text = "\n".join([para.text for para in doc.paragraphs])
+
     elif file_path.endswith(".xlsx"):
         df = pd.read_excel(file_path)
         extracted_text = df.to_string()
+
+    elif file_path.lower().endswith((".png", ".jpg", ".jpeg")):
+        # Process images with OpenCV and Tesseract OCR
+        image = cv2.imread(file_path)
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
+        text = pytesseract.image_to_string(gray)  # Perform OCR
+        extracted_text = text.strip()
+
     return extracted_text
 
 # Function to analyze text using GPT-4
 def analyze_text(text):
     response = openai.ChatCompletion.create(
         model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are a medical AI assistant. Extract key medical data, summarize results, and classify into normal, alert, or consult doctor."},
+            messages=[
+            {"role": "system", "content": "You are a medical AI assistant. Extract key medical data, summarize results, and explain them in a user-friendly format."},
             {"role": "user", "content": text},
         ]
     )
-    return response["choices"][0]["message"]["content"]
+    return response["choices"][0]["message"]["content"][:500]
 
 # Function to fetch ICD-10 disease classification
 def get_icd10_classification(medical_terms):
