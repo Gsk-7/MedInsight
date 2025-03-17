@@ -338,7 +338,7 @@ function App() {
                 type="file"
                 id="fileUpload"
                 className="hidden"
-                accept=".pdf,.xlsx,.docx"
+                accept=".pdf,.xlsx,.docx,.png,.jpg,.jpeg"
                 onChange={handleFileChange}
               />
               <label
@@ -348,7 +348,7 @@ function App() {
                 Choose File
               </label>
               <p className="text-sm mt-2 text-gray-500">
-                Supported formats: PDF, XLSX, DOCX
+                Supported formats: PDF, XLSX, DOCX, PNG, JPG, JPEG
               </p>
             </>
           ) : (
