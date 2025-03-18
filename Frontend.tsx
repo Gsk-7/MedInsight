@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion } from "framer-motion";
 import {
   Bell, Bot, X, FileUp, Settings, HelpCircle, History,
   User, Sun, Moon, Brain, FileImage, FileText, Activity,
@@ -464,9 +465,9 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-200 ${
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
       isDarkMode ? 'dark bg-gray-900' : 'bg-gray-50'
-    }`}>
+    }`}>    
       {/* Header */}
       <header className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -590,14 +591,21 @@ function App() {
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              className="p-2 rounded-lg relative flex items-center justify-center"
             >
-              {isDarkMode ? (
-                <Sun className="h-6 w-6 text-yellow-400" />
-              ) : (
-                <Moon className="h-6 w-6 text-gray-600" />
-              )}
+            <motion.div
+              className="w-6 h-6 flex items-center justify-center"
+              animate={{ rotate: isDarkMode ? 180 : 0, scale: isDarkMode ? 1.2 : 1 }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+            >
+            {isDarkMode ? (
+              <Sun className="h-6 w-6 text-yellow-400" />
+            ) : (
+              <Moon className="h-6 w-6 text-gray-600" />
+            )}
+              </motion.div>
             </button>
+
 
             {/* Profile */}
             <button
@@ -624,47 +632,52 @@ function App() {
             Upload Medical Reports
           </h2>
           
-          {/* Upload Tabs */}
-          <div className="mt-6 border-b border-gray-200">
-            <div className="flex space-x-8">
-              <button
-                onClick={() => setActiveUploadTab('files')}
-                className={`pb-4 relative ${
-                  activeUploadTab === 'files'
-                    ? `${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`
-                    : `${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <FileUp className="h-5 w-5" />
-                  <span>Upload Files</span>
-                </div>
-                {activeUploadTab === 'files' && (
-                  <div className={`absolute bottom-0 left-0 w-full h-0.5 ${
-                    isDarkMode ? 'bg-indigo-400' : 'bg-indigo-600'
-                  }`} />
-                )}
-              </button>
-              <button
-                onClick={() => setActiveUploadTab('camera')}
-                className={`pb-4 relative ${
-                  activeUploadTab === 'camera'
-                    ? `${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`
-                    : `${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Camera className="h-5 w-5" />
-                  <span>Take Photo</span>
-                </div>
-                {activeUploadTab === 'camera' && (
-                  <div className={`absolute bottom-0 left-0 w-full h-0.5 ${
-                    isDarkMode ? 'bg-indigo-400' : 'bg-indigo-600'
-                  }`} />
-                )}
-              </button>
-            </div>
-          </div>
+{/* Upload Tabs */}
+<div className="mt-6 border-b border-gray-200">
+  <div className="flex space-x-8">
+    <motion.button
+      onClick={() => setActiveUploadTab('files')}
+      whileTap={{ scale: 0.9 }} // Soft bounce effect on click
+      whileHover={{ scale: 1.05 }} // Slight enlarge effect on hover
+      className={`pb-4 relative ${
+        activeUploadTab === 'files'
+          ? `${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`
+          : `${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`
+      }`}
+    >
+      <div className="flex items-center space-x-2">
+        <FileUp className="h-5 w-5" />
+        <span>Upload Files</span>
+      </div>
+      {activeUploadTab === 'files' && (
+        <div className={`absolute bottom-0 left-0 w-full h-0.5 ${
+          isDarkMode ? 'bg-indigo-400' : 'bg-indigo-600'
+        }`} />
+      )}
+    </motion.button>
+
+    <motion.button
+      onClick={() => setActiveUploadTab('camera')}
+      whileTap={{ scale: 0.9 }}
+      whileHover={{ scale: 1.05 }}
+      className={`pb-4 relative ${
+        activeUploadTab === 'camera'
+          ? `${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`
+          : `${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`
+      }`}
+    >
+      <div className="flex items-center space-x-2">
+        <Camera className="h-5 w-5" />
+        <span>Take Photo</span>
+      </div>
+      {activeUploadTab === 'camera' && (
+        <div className={`absolute bottom-0 left-0 w-full h-0.5 ${
+          isDarkMode ? 'bg-indigo-400' : 'bg-indigo-600'
+        }`} />
+      )}
+    </motion.button>
+  </div>
+</div>
 
           {/* Upload Areas */}
           {activeUploadTab === 'files' ? (
