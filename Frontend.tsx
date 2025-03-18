@@ -37,6 +37,25 @@ function App() {
   const [isListening, setIsListening] = useState(false);
   const [isCameraOpen, setCameraOpen] = useState(false); // State for camera modal
 
+  interface AnimatedButtonProps {
+    onClick: () => void;
+    children: React.ReactNode;
+  }
+  
+  const AnimatedButton: React.FC<AnimatedButtonProps> = ({ onClick, children }) => {
+    return (
+      <motion.button
+        onClick={onClick}
+        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.05 }}
+        className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md transition-all"
+      >
+        {children}
+      </motion.button>
+    );
+  };
+
+
  // Function to start speech recognition
   const startListening = () => {
     if (typeof window.SpeechRecognition === 'function' || typeof window.webkitSpeechRecognition === 'function') {
@@ -342,12 +361,9 @@ function App() {
                 accept=".pdf,.xlsx,.docx,.png,.jpg,.jpeg"
                 onChange={handleFileChange}
               />
-              <label
-                htmlFor="fileUpload"
-                className="cursor-pointer inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-              >
-                Choose File
-              </label>
+              <AnimatedButton onClick={() => document.getElementById("fileUpload")?.click()}>
+              Choose File
+            </AnimatedButton>
               <p className="text-sm mt-2 text-gray-500">
                 Supported formats: PDF, XLSX, DOCX, PNG, JPG, JPEG
               </p>
@@ -632,31 +648,31 @@ function App() {
             Upload Medical Reports
           </h2>
           
-{/* Upload Tabs */}
-<div className="mt-6 border-b border-gray-200">
-  <div className="flex space-x-8">
-    <motion.button
-      onClick={() => setActiveUploadTab('files')}
-      whileTap={{ scale: 0.9 }} // Soft bounce effect on click
-      whileHover={{ scale: 1.05 }} // Slight enlarge effect on hover
-      className={`pb-4 relative ${
-        activeUploadTab === 'files'
+      {/* Upload Tabs */}
+      <div className="mt-6 border-b border-gray-200">
+      <div className="flex space-x-8">
+      <motion.button
+        onClick={() => setActiveUploadTab('files')}
+        whileTap={{ scale: 0.9 }} // Soft bounce effect on click
+        whileHover={{ scale: 1.05 }} // Slight enlarge effect on hover
+        className={`pb-4 relative ${
+          activeUploadTab === 'files'
           ? `${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`
           : `${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`
-      }`}
-    >
+        }`}
+      >
       <div className="flex items-center space-x-2">
-        <FileUp className="h-5 w-5" />
-        <span>Upload Files</span>
+      <FileUp className="h-5 w-5" />
+      <span>Upload Files</span>
       </div>
       {activeUploadTab === 'files' && (
-        <div className={`absolute bottom-0 left-0 w-full h-0.5 ${
-          isDarkMode ? 'bg-indigo-400' : 'bg-indigo-600'
+      <div className={`absolute bottom-0 left-0 w-full h-0.5 ${
+        isDarkMode ? 'bg-indigo-400' : 'bg-indigo-600'
         }`} />
       )}
-    </motion.button>
+      </motion.button>
 
-    <motion.button
+      <motion.button
       onClick={() => setActiveUploadTab('camera')}
       whileTap={{ scale: 0.9 }}
       whileHover={{ scale: 1.05 }}
@@ -664,8 +680,8 @@ function App() {
         activeUploadTab === 'camera'
           ? `${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`
           : `${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`
-      }`}
-    >
+        }`}
+      >
       <div className="flex items-center space-x-2">
         <Camera className="h-5 w-5" />
         <span>Take Photo</span>
@@ -675,9 +691,9 @@ function App() {
           isDarkMode ? 'bg-indigo-400' : 'bg-indigo-600'
         }`} />
       )}
-    </motion.button>
-  </div>
-</div>
+      </motion.button>
+      </div>
+      </div>
 
           {/* Upload Areas */}
           {activeUploadTab === 'files' ? (
