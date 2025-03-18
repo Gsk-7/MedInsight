@@ -12,6 +12,8 @@ import docx
 import pytesseract
 import cv2
 from PIL import Image
+import scispacy
+import spacy
 
 
 # Load environment variables
@@ -24,16 +26,24 @@ CORS(app)
 # Logging setup
 logging.basicConfig(level=logging.DEBUG)
 
-# Set the path to tesseract.exe
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-
 # Configure API Key
-genai.configure(api_key="AIzaSyDGvR_OAz0iGn69q-DYZafJFNeASEGVsS4")
-openai.api_key = os.getenv("OPENAI_API_KEY")  # Make sure to set this in .env
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # ICD-10 API Credentials
 ICD10_CLIENT_ID = os.getenv("ICD10_CLIENT_ID")
 ICD10_CLIENT_SECRET = os.getenv("ICD10_CLIENT_SECRET")
+
+# Load the SciSpaCy model
+nlp = spacy.load("en_core_sci_sm")
+
+def extract_medical_entities(text):
+    """Extract medical entities such as test names, diseases, and symptoms from text."""
+    doc = nlp(text)
+    entities = []
+    for ent in doc.ents:
+        entities.append({"text": ent.text, "label": ent.label_})
+    
+    return entities
 
 # Initialize the model
 MODEL_ID = "gemini-2.0-flash-exp"
@@ -115,12 +125,12 @@ def analyze_report():
     if not extracted_text:
         return jsonify({"error": "No text extracted from document"}), 400
 
-    analysis_result = analyze_text(extracted_text)
+    medical_entities = extract_medical_entities(extracted_text)
     icd10_result = get_icd10_classification(extracted_text)
-    
+
     return jsonify({
         "message": "Analysis complete",
-        "analysis": analysis_result,
+        "medical_entities": medical_entities,
         "icd10_classification": icd10_result,
     }), 200
 
