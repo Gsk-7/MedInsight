@@ -15,7 +15,6 @@ from PIL import Image
 import scispacy
 import spacy
 
-
 # Load environment variables
 load_dotenv()
 
