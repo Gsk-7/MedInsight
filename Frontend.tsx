@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from "framer-motion";
 import Account from './Account';
 import Analyze from './Analyze';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'; // Import routing components
 import {
   Bell, Bot, X, FileUp, Settings, HelpCircle, History,
   User, Sun, Moon, Brain, FileImage, FileText, Activity,
@@ -16,6 +17,20 @@ import {
 } from './types';
 
 function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Main App Route */}
+        <Route path="/" element={<MainContent />} />
+        {/* Analyze Route */}
+        <Route path="/analyze" element={<Analyze />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+
+function MainContent() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isChatOpen, setChatOpen] = useState(false);
@@ -39,7 +54,8 @@ function App() {
   const [isListening] = useState(false);
   const [isCameraOpen, setCameraOpen] = useState(false);
   const [isAccountOpen, setAccountOpen] = useState(false);
-
+  const [isAnalyzeOpen, setAnalyzeOpen] = useState(false);
+  const navigate = useNavigate(); 
 
   interface AnimatedButtonProps {
     onClick: () => void;
@@ -303,7 +319,7 @@ function App() {
   const FilesUploadArea = () => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [uploaded, setUploaded] = useState(false);
-  
+
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (event.target.files && event.target.files.length > 0) {
         const file = event.target.files[0];
@@ -311,17 +327,17 @@ function App() {
         uploadFile(file);
       }
     };
-  
+
     const uploadFile = async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-  
+
       try {
         const response = await fetch("http://127.0.0.1:5000/upload", {
           method: "POST",
           body: formData,
         });
-  
+
         if (response.ok) {
           setUploaded(true);
         } else {
@@ -331,9 +347,9 @@ function App() {
         console.error("Error uploading file:", error);
       }
     };
-  
+
     const handleAnalyzeClick = () => {
-      window.location.href = "/analyze"; // Redirect to analysis page
+      navigate("/analyze"); // Use navigate to redirect to the Analyze page
     };
   
     return (
@@ -349,8 +365,8 @@ function App() {
                 onChange={handleFileChange}
               />
               <AnimatedButton onClick={() => document.getElementById("fileUpload")?.click()}>
-              Choose File
-            </AnimatedButton>
+                Choose File
+              </AnimatedButton>
               <p className="text-sm mt-2 text-gray-500">
                 Supported formats: PDF, XLSX, DOCX, PNG, JPG, JPEG
               </p>
@@ -358,19 +374,15 @@ function App() {
           ) : (
             <div className="text-center">
               <p className="text-lg font-medium">File uploaded successfully!</p>
-              <button
-                onClick={handleAnalyzeClick}
-                className="mt-4 px-6 py-2 bg-green-600 text-white rounded-md"
-              >
+              <AnimatedButton onClick={handleAnalyzeClick}>
                 Analyze
-              </button>
+              </AnimatedButton>
             </div>
           )}
         </div>
       </div>
     );
   };
-  
 
   const CameraUploadArea = () => {
     return (
@@ -1159,6 +1171,25 @@ function App() {
       {/* Modal for camera */}
       {isCameraOpen && <CameraModal />}
 
+      {isAnalyzeOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl overflow-hidden max-h-[90vh] overflow-y-auto">
+      {/* Close Button */}
+      <div className="flex justify-end p-4 sticky top-0 bg-white z-10">
+        <button
+          onClick={() => setAnalyzeOpen(false)}
+          className="p-2 rounded-lg hover:bg-gray-100"
+        >
+          <X className="h-5 w-5 text-gray-600" />
+        </button>
+      </div>
+
+      {/* Analyze Component */}
+      <Analyze />
+    </div>
+  </div>
+)}
+
       {isAccountOpen && (
   <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
   <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl overflow-hidden max-h-[90vh] overflow-y-auto">
@@ -1178,7 +1209,8 @@ function App() {
     
   </div>
 )}
-    </div>
+</div>
+
   );
 }
 
