@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Activity, Calendar as CalendarIcon, Clock, FileText, Heart, User, ChevronDown, AlertTriangle, CheckCircle, Phone, Mail, MapPin, Star, ArrowLeft, Search, Filter } from 'lucide-react';
 import { format, addDays, isSameDay } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 // Add detailed summary to the medical report data
 const medicalReport = {
@@ -200,6 +201,7 @@ function App() {
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialists");
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate()
 
   // Generate next 7 days for the calendar
   const dates = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i));
@@ -409,6 +411,12 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
+            <button
+                onClick={() => navigate('/')} // Navigate to the home page
+                className="mr-4 text-gray-600 hover:text-gray-900"
+              >
+                <ArrowLeft className="h-6 w-6" />
+              </button>
               <Activity className="h-8 w-8 text-blue-600" />
               <h1 className="ml-2 text-2xl font-bold text-gray-900">Medical Analysis Report</h1>
             </div>
