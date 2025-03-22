@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from "framer-motion";
+import Account from './Account';
+import Analyze from './Analyze';
 import {
   Bell, Bot, X, FileUp, Settings, HelpCircle, History,
   User, Sun, Moon, Brain, FileImage, FileText, Activity,
@@ -34,8 +36,10 @@ function App() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [fileType, setFileType] = useState<'documents' | 'images'>('documents');
-  const [isListening, setIsListening] = useState(false);
-  const [isCameraOpen, setCameraOpen] = useState(false); // State for camera modal
+  const [isListening] = useState(false);
+  const [isCameraOpen, setCameraOpen] = useState(false);
+  const [isAccountOpen, setAccountOpen] = useState(false);
+
 
   interface AnimatedButtonProps {
     onClick: () => void;
@@ -54,37 +58,7 @@ function App() {
       </motion.button>
     );
   };
-
-
- // Function to start speech recognition
-  const startListening = () => {
-    if (typeof window.SpeechRecognition === 'function' || typeof window.webkitSpeechRecognition === 'function') {
-      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognition.lang = 'en-US';
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.onresult = (event: { results: { transcript: any; }[][]; }) => {
-        const transcript = event.results[0][0].transcript;
-        setMessage(transcript); // Update message with the recognized transcript
-        sendMessage(); // Send the message immediately after recognition
-      };
-
-      recognition.onerror = (event: { error: any; }) => {
-        console.error('Speech recognition error:', event.error);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false); // Update state once recognition ends
-      };
-
-      setIsListening(true);
-      recognition.start(); // Start recognition
-    } else {
-      alert('Speech recognition not supported in your browser.');
-    }
-  };
-
+  
   // Define notifications and reports as state variables
   const [notifications, setNotifications] = useState<Notification[]>([
     {
@@ -203,7 +177,20 @@ function App() {
         user: {
           id: "user123",
           name: "John Doe",
-          email: "john.doe@example.com"
+          email: "john.doe@example.com",
+          avatar: '',
+          role: '',
+          personalInfo: {
+            dateOfBirth: '',
+            age: 0,
+            gender: '',
+            bloodType: ''
+          },
+          contactInfo: {
+            phone: '',
+            address: '',
+            emergencyContact: ''
+          }
         },
         reports: [
           {
@@ -479,6 +466,19 @@ function App() {
     if (!date) return '';
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
+  
+  useEffect(() => {
+    if (isAccountOpen) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+  
+    // Cleanup function
+    return () => {
+      document.body.classList.remove('overflow-hidden');
+    };
+  }, [isAccountOpen]);
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
@@ -631,7 +631,7 @@ function App() {
               }`}
             >
               <UserCircle className={`h-6 w-6 ${isDarkMode ? 'text-white' : 'text-gray-600'}`} />
-              <span className={isDarkMode ? 'text-white' : 'text-gray-600'}>John Doe</span>
+              <span className={isDarkMode ? 'text-white' : 'text-gray-600'}>Abhijith</span>
             </button>
           </div>
         </div>
@@ -866,60 +866,79 @@ function App() {
         </div>
       </footer>
 
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 right-0 w-64 ${
-        isDarkMode ? 'bg-gray-800' : 'bg-white'
-      } shadow-lg transform ${
-        isSidebarOpen ? 'translate-x-0' : 'translate-x-full'
-      } transition-transform duration-200 ease-in-out z-30`}>
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Profile
-            </h2>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-            >
-              <X className={`h-5 w-5 ${isDarkMode ? 'text-white' : 'text-gray-600'}`} />
-            </button>
-          </div>
-          
-          {/* Profile Section */}
-          <div className="mb-8 text-center">
-            <UserCircle className={`h-20 w-20 mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
-            <h3 className={`mt-4 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>John Doe</h3>
-            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>john.doe@example.com</p>
-          </div>
+{/* Sidebar */}
+<motion.div
+  initial={{ x: "100%" }} // Start hidden (off-screen)
+  animate={{ x: isSidebarOpen ? 0 : "100%" }}
+  transition={{ duration: 0.3, ease: "easeInOut" }}
+  className={`fixed inset-y-0 right-0 w-64 ${
+    isDarkMode ? 'bg-gray-800' : 'bg-white'
+  } shadow-lg z-30`}
+>
+  <div className="p-4">
+    <div className="flex items-center justify-between mb-8">
+      <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+        Profile
+      </h2>
+      <button
+        onClick={() => setSidebarOpen(false)}
+        className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+      >
+        <X className={`h-5 w-5 ${isDarkMode ? 'text-white' : 'text-gray-600'}`} />
+      </button>
+    </div>
+    
+   {/* Profile Section */}
+<div className="mb-8 text-center">
+  <UserCircle className={`h-20 w-20 mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+  <h3 className={`mt-4 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Abhijith</h3>
+  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Abhijith_baby@gmail.com</p>
+</div>
 
-          <nav className="space-y-2">
-            <button className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
-              isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-            }`}>
-              <User className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
-              <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Account</span>
-            </button>
-            <button className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
-              isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-            }`}>
-              <History className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
-              <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>History</span>
-            </button>
-            <button className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
-              isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-            }`}>
-              <Settings className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
-              <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Settings</span>
-            </button>
-            <button className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
-              isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-            }`}>
-              <HelpCircle className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
-              <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Help</span>
-            </button>
-          </nav>
-        </div>
-      </div>
+<nav className="space-y-2">
+  {/* Account Button */}
+  <button 
+    onClick={() => setAccountOpen(true)} 
+    className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
+      isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+    }`}
+  >
+    <User className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+    <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Account</span>
+  </button>
+
+  {/* History Button */}
+  <button 
+    className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
+      isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+    }`}
+  >
+    <History className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+    <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>History</span>
+  </button>
+
+  {/* Settings Button */}
+  <button 
+    className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
+      isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+    }`}
+  >
+    <Settings className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+    <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Settings</span>
+  </button>
+
+  {/* Help Button */}
+  <button 
+    className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
+      isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+    }`}
+  >
+    <HelpCircle className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+    <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Help</span>
+  </button>
+</nav>
+  </div>
+</motion.div>
 
       {/* Enhanced Chatbot */}
       <div className="fixed bottom-4 right-4 z-20">
@@ -1093,23 +1112,31 @@ function App() {
             </div>
           </div>
         ) : (
-          <button
-            onClick={() => setChatOpen(true)}
-            className={`p-4 rounded-full shadow-lg ${
-              isDarkMode ? 'bg-indigo-600' : 'bg-indigo-600'
-            } hover:bg-indigo-700 transition-colors relative group`}
-          >
-            <Bot className="h-6 w-6 text-white" />
-            <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-              1
-            </span>
-            <span className="absolute top-0 right-full mr-3 px-3 py-1 rounded-lg bg-white text-gray-800 text-sm shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="flex items-center">
-                <span>Need help?</span>
-                <ArrowRight className="h-3 w-3 ml-1" />
-              </div>
-            </span>
-          </button>
+          <motion.button
+          onClick={() => setChatOpen(true)}
+          className={`p-4 rounded-full shadow-lg ${
+            isDarkMode ? 'bg-indigo-600' : 'bg-indigo-600'
+          } hover:bg-indigo-700 transition-colors relative group`}
+          animate={{
+            rotate: [0, -10, 10, -10, 0], // Waving animation
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 2,
+            ease: "easeInOut",
+          }}
+        >
+          <Bot className="h-6 w-6 text-white" />
+          <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+            1
+          </span>
+          <span className="absolute top-0 right-full mr-3 px-3 py-1 rounded-lg bg-white text-gray-800 text-sm shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center">
+              <span>Need help?</span>
+              <ArrowRight className="h-3 w-3 ml-1" />
+            </div>
+          </span>
+        </motion.button>
         )}
       </div>
 
@@ -1132,6 +1159,25 @@ function App() {
       {/* Modal for camera */}
       {isCameraOpen && <CameraModal />}
 
+      {isAccountOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+  <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl overflow-hidden max-h-[90vh] overflow-y-auto">
+  {/* Close Button */}
+  <div className="flex justify-end p-4 sticky top-0 bg-white z-10">
+    <button
+      onClick={() => setAccountOpen(false)}
+      className="p-2 rounded-lg hover:bg-gray-100"
+    >
+      <X className="h-5 w-5 text-gray-600" />
+    </button>
+  </div>
+
+  {/* Account Component */}
+  <Account/>
+</div>
+    
+  </div>
+)}
     </div>
   );
 }
