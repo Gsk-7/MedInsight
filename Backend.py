@@ -20,7 +20,7 @@ from PIL import Image
 import secrets # Import secrets for generating a key
 from googletrans import Translator # For translation
 import time # Potentially for translation delays
-from flask_pymongo import PyMongo
+from flask_pymongo import PyMongo # type: ignore
 from bson import ObjectId
 import jwt
 import datetime
